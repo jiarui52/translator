@@ -31,6 +31,7 @@ const TranslationForm: React.FC<TranslationFormProps> = ({ onTranslate }) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onTranslate(text, selectedLanguages);
+    setText('')
   };
 
   return (
