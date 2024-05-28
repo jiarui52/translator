@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import TranslationForm from './components/TranslationForm';
 import { translateText } from './lib/translate';
 
@@ -7,41 +7,40 @@ type Translation = {
   text: string;
 };
 
+type Metadata = {
+  totalTranslations: number;
+  wordsTranslated: number;
+  languagesTranslated: Set<string>;
+};
+
 const App: React.FC = () => {
   const [translations, setTranslations] = useState<Translation[]>([]);
-  const [metadata, setMetadata] = useState(() => {
-    const savedMetadata = localStorage.getItem('translationMetadata');
-    return savedMetadata ? JSON.parse(savedMetadata) : {
-      totalTranslations: 0,
-      wordsTranslated: 0,
-      languagesTranslated: new Set<string>(),
-    };
+  const [metadata, setMetadata] = useState<Metadata>({
+    totalTranslations: 0,
+    wordsTranslated: 0,
+    languagesTranslated: new Set<string>(),
   });
 
   const handleTranslate = async (text: string, selectedLanguages: string[]) => {
-    const newTranslations = await Promise.all(selectedLanguages.map(async (lang) => {
-      const translatedText = await translateText(text, lang);
-      return { language: lang, text: translatedText };
-    }));
+    const newTranslations = await Promise.all(
+      selectedLanguages.map(async (lang) => {
+        const translatedText = await translateText(text, lang);
+        return { language: lang, text: translatedText };
+      })
+    );
 
     setTranslations(newTranslations);
 
-    const newMetadata = {
+    const newMetadata: Metadata = {
       totalTranslations: metadata.totalTranslations + newTranslations.length,
       wordsTranslated: metadata.wordsTranslated + text.split(' ').length,
-      languagesTranslated: new Set([...metadata.languagesTranslated, ...selectedLanguages]),
+      languagesTranslated: new Set([
+        ...metadata.languagesTranslated,
+        ...selectedLanguages,
+      ]),
     };
     setMetadata(newMetadata);
-
-    localStorage.setItem('translationMetadata', JSON.stringify(newMetadata));
   };
-
-  useEffect(() => {
-    const savedMetadata = localStorage.getItem('translationMetadata');
-    if (savedMetadata) {
-      setMetadata(JSON.parse(savedMetadata));
-    }
-  }, []);
 
   return (
     <div className="container mx-auto p-4">
