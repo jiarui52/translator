@@ -2,6 +2,10 @@ import axios from 'axios';
 
 const OPENAI_API_KEY = process.env.REACT_APP_OPENAI_API_KEY;
 
+if (!OPENAI_API_KEY) {
+  throw new Error('Missing OpenAI API key');
+}
+
 export const translateText = async (text: string, targetLanguage: string): Promise<string> => {
   try {
     const response = await axios.post(
@@ -13,7 +17,6 @@ export const translateText = async (text: string, targetLanguage: string): Promi
           { role: 'user', content: text }
         ],
         max_tokens: 60,
-        temperature: 0.7,
       },
       {
         headers: {
@@ -23,7 +26,6 @@ export const translateText = async (text: string, targetLanguage: string): Promi
       }
     );
 
-    console.log('API Response:', response);
 
     if (response.status === 200 && response.data.choices && response.data.choices.length > 0) {
       return response.data.choices[0].message.content.trim();
